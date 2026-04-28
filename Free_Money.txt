@@ -1,0 +1,33 @@
+local fishes = workspace.Game.Fishes
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local RunService = game:GetService("RunService")
+
+RunService.RenderStepped:Connect(function()
+    local highest = 0
+    local highestFish = nil
+
+    for _, fish in ipairs(fishes:GetChildren()) do
+        local cash = fish:GetAttribute("CashPerSec")
+        local owner = fish:GetAttribute("Owner")
+        if cash and not owner and cash > highest then
+            highest = cash
+            highestFish = fish
+        end
+    end
+
+    if highestFish then
+        local fishPosition = highestFish:GetPivot().Position
+        rootPart.CFrame = CFrame.new(fishPosition)
+
+        local prompt = highestFish.RootPart:FindFirstChild("ProximityPrompt")
+        if prompt then
+            fireproximityprompt(prompt)
+            local args = {
+                buffer.fromstring("\003\001")
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Packets"):WaitForChild("Packet"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+        end
+    end
+end)
